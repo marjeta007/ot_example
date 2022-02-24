@@ -1,11 +1,17 @@
+import requests
 from opentelemetry import baggage, trace
 from opentelemetry.context import attach, detach
+from fastapi import APIRouter
+
+router = APIRouter()
+tracer = trace.get_tracer(__name__)
 
 
 @router.get("/test")
 def test():
     # create a span
-    with t.start_as_current_span("get-menuset") as span:
+    # t = trace.
+    with tracer.start_as_current_span("get-menuset") as span:
         # set some span attributes
         span.set_attribute("_nb.system", "pos-api")
         span.set_attribute("_nb.name", "get-menu")
