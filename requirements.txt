@@ -1,2 +1,4 @@
 opentelemetry-distro[otlp]
 opentelemetry-instrumentation
+opentelemetry-exporter-jaeger
+opentelemetry-instrumentation-fastapi
