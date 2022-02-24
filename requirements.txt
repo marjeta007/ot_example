@@ -2,3 +2,6 @@ opentelemetry-distro[otlp]
 opentelemetry-instrumentation
 opentelemetry-exporter-jaeger
 opentelemetry-instrumentation-fastapi
+
+requests~=2.27.1
+fastapi~=0.74.1
