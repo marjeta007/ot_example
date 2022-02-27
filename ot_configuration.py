@@ -1,9 +1,8 @@
-"""
-newrelic key: 404359c8febace864cbc4799b936d039FFFFNRAL
-newrelic key ID: 67CEF76E248BD840985F6619825A4479D9C45B6BD464E20183D4EA84B2DD29D4
-"""
+"""Configuration..."""
 import logging
+from pathlib import Path
 
+import yaml
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 # Exporters
@@ -23,9 +22,11 @@ from opentelemetry.sdk.trace import TracerProvider
 # Span processors
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 
-NEW_RELIC_KEY = "404359c8febace864cbc4799b936d039FFFFNRAL"
+with Path(__file__).parent.joinpath("env.yml").open() as fp:
+    yaml_data = yaml.safe_load(fp)
 
-OT_COLLECTOR_ENDPOINT = "https://otlp.nr-data.net:4317"
+NEW_RELIC_KEY = yaml_data["NEW_RELIC_KEY"]
+OT_COLLECTOR_ENDPOINT = yaml_data["OT_COLLECTOR_ENDPOINT"]
 
 
 # ==============================================================================
@@ -35,6 +36,7 @@ def configure_opentelemetry(service_name, app=None):
     if app is not None:
         FastAPIInstrumentor.instrument_app(app)
 
+    print(f"Service name : {service_name}")
     resource = Resource.create(
         {
             SERVICE_NAME: service_name
@@ -49,7 +51,7 @@ def configure_tracing(resource):
     # jaeger_export = JaegerExporter(agent_host_name="localhost", agent_port=6831)
     otlp_exporter = OTLPSpanExporter(
         endpoint=OT_COLLECTOR_ENDPOINT,
-        headers=(f"api-key={NEW_RELIC_KEY}",)
+        headers=((f"api-key={NEW_RELIC_KEY}")),
     )
 
     provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
@@ -60,11 +62,14 @@ def configure_tracing(resource):
 
 
 def configure_logging(resource):
+    orig_headers = ((f"api-key={NEW_RELIC_KEY}"))
+    modified_headers = (f"api-key={NEW_RELIC_KEY}",)
+
     provider = LogEmitterProvider(resource=resource)
     set_log_emitter_provider(provider)
     otlp_exporter = OTLPLogExporter(
         endpoint=OT_COLLECTOR_ENDPOINT,
-        headers=(f"api-key={NEW_RELIC_KEY}",)
+        headers=((f"api-key={NEW_RELIC_KEY}")),
     )
 
     provider.add_log_processor(BatchLogProcessor(otlp_exporter))
